@@ -1,0 +1,1230 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Jose's Bounty Tracker</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --deep: #1b5e20;
+    --hot: #388e3c;
+    --bright: #66bb6a;
+    --light: #e8f5e9;
+    --pale: #f1f8f2;
+    --mid: #a5d6a7;
+    --gold: #f59e0b;
+    --gold-light: #fef3c7;
+    --text-dark: #1a1a2e;
+    --text-mid: #555577;
+    --text-light: #8888aa;
+    --white: #ffffff;
+    --shadow: 0 4px 24px rgba(27,94,32,0.12);
+    --shadow-hover: 0 8px 40px rgba(27,94,32,0.22);
+    --danger: #ef4444;
+    --danger-light: #fee2e2;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--pale);
+    min-height: 100vh;
+    color: var(--text-dark);
+    position: relative;
+    overflow-x: hidden;
+  }
+
+  body::before {
+    content: '';
+    position: fixed;
+    top: -200px; right: -200px;
+    width: 600px; height: 600px;
+    background: radial-gradient(circle, rgba(27,94,32,0.08) 0%, transparent 70%);
+    pointer-events: none; z-index: 0;
+  }
+
+  body::after {
+    content: '';
+    position: fixed;
+    bottom: -150px; left: -150px;
+    width: 400px; height: 400px;
+    background: radial-gradient(circle, rgba(27,94,32,0.07) 0%, transparent 70%);
+    pointer-events: none; z-index: 0;
+  }
+
+  .container {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 40px 24px 80px;
+    position: relative; z-index: 1;
+  }
+
+  header {
+    text-align: center;
+    margin-bottom: 48px;
+  }
+
+  .header-tag {
+    display: inline-block;
+    background: var(--hot);
+    color: white;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 2.5px;
+    text-transform: uppercase;
+    padding: 6px 16px;
+    border-radius: 20px;
+    margin-bottom: 16px;
+  }
+
+  h1 {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(2.2rem, 5vw, 3.4rem);
+    font-weight: 900;
+    color: var(--text-dark);
+    line-height: 1.1;
+    margin-bottom: 10px;
+  }
+
+  h1 span { color: var(--hot); }
+
+  .subtitle {
+    color: var(--text-light);
+    font-size: 15px;
+  }
+
+  .stats-bar {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 14px;
+    margin-bottom: 40px;
+  }
+
+  .stat-card {
+    background: var(--white);
+    border-radius: 18px;
+    padding: 20px 16px;
+    text-align: center;
+    box-shadow: var(--shadow);
+    border: 1.5px solid rgba(27,94,32,0.07);
+    transition: transform 0.2s, box-shadow 0.2s;
+  }
+
+  .stat-card:hover { transform: translateY(-2px); box-shadow: var(--shadow-hover); }
+
+  .stat-card.total {
+    background: linear-gradient(135deg, var(--hot) 0%, var(--deep) 100%);
+    color: white;
+    border-color: transparent;
+  }
+
+  .stat-label {
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    color: var(--text-light);
+    margin-bottom: 8px;
+  }
+
+  .stat-card.total .stat-label { color: rgba(255,255,255,0.75); }
+
+  .stat-value {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.7rem;
+    font-weight: 700;
+    color: var(--deep);
+  }
+
+  .stat-card.total .stat-value { color: white; }
+
+  .add-card {
+    background: var(--white);
+    border-radius: 24px;
+    padding: 32px 32px 28px;
+    box-shadow: var(--shadow);
+    margin-bottom: 36px;
+    border: 1.5px solid rgba(27,94,32,0.08);
+  }
+
+  .add-card h2 {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.35rem;
+    color: var(--text-dark);
+    margin-bottom: 22px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .add-card h2::before {
+    content: '+';
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px; height: 28px;
+    background: var(--hot);
+    color: white;
+    border-radius: 8px;
+    font-size: 1.1rem;
+    font-weight: 700;
+    font-family: 'DM Sans', sans-serif;
+  }
+
+  .form-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    margin-bottom: 16px;
+  }
+
+  .form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 7px;
+  }
+
+  label {
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    color: var(--text-mid);
+  }
+
+  input[type="text"], input[type="url"] {
+    width: 100%;
+    padding: 12px 16px;
+    border: 1.5px solid rgba(27,94,32,0.15);
+    border-radius: 12px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 14px;
+    color: var(--text-dark);
+    background: var(--pale);
+    transition: border-color 0.2s, box-shadow 0.2s;
+    outline: none;
+  }
+
+  input[type="text"]:focus, input[type="url"]:focus {
+    border-color: var(--hot);
+    box-shadow: 0 0 0 3px rgba(27,94,32,0.1);
+    background: white;
+  }
+
+  .type-selector {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+  }
+
+  .type-option { position: relative; }
+
+  .type-option input[type="radio"] {
+    position: absolute;
+    opacity: 0;
+    width: 0; height: 0;
+  }
+
+  .type-label {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 14px 18px;
+    border: 2px solid rgba(27,94,32,0.15);
+    border-radius: 14px;
+    cursor: pointer;
+    background: var(--pale);
+    transition: all 0.2s;
+    user-select: none;
+  }
+
+  .type-label:hover { border-color: var(--bright); background: var(--light); }
+
+  .type-option input[type="radio"]:checked + .type-label {
+    border-color: var(--hot);
+    background: var(--light);
+    box-shadow: 0 0 0 3px rgba(27,94,32,0.1);
+  }
+
+  .type-name {
+    font-weight: 600;
+    font-size: 14px;
+    color: var(--text-dark);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .type-dot {
+    width: 10px; height: 10px;
+    border-radius: 50%;
+    background: var(--mid);
+    flex-shrink: 0;
+  }
+
+  .type-option input[type="radio"]:checked + .type-label .type-dot { background: var(--hot); }
+
+  .type-price {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: var(--deep);
+  }
+
+  .btn-add {
+    width: 100%;
+    padding: 15px;
+    background: linear-gradient(135deg, var(--hot) 0%, var(--deep) 100%);
+    color: white;
+    border: none;
+    border-radius: 14px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+    letter-spacing: 0.3px;
+    margin-top: 8px;
+  }
+
+  .btn-add:hover { transform: translateY(-1px); box-shadow: 0 6px 20px rgba(27,94,32,0.35); }
+  .btn-add:active { transform: translateY(0); }
+
+  .list-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 16px;
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+
+  .list-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.35rem;
+    color: var(--text-dark);
+  }
+
+  .list-controls {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+
+  .count-badge {
+    background: var(--light);
+    color: var(--deep);
+    font-size: 12px;
+    font-weight: 600;
+    padding: 4px 12px;
+    border-radius: 20px;
+  }
+
+  .search-input {
+    padding: 8px 14px;
+    border: 1.5px solid rgba(27,94,32,0.15);
+    border-radius: 10px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 13px;
+    background: var(--white);
+    color: var(--text-dark);
+    outline: none;
+    width: 180px;
+    transition: border-color 0.2s;
+  }
+
+  .search-input:focus { border-color: var(--hot); }
+
+  .filter-select {
+    padding: 8px 14px;
+    border: 1.5px solid rgba(27,94,32,0.15);
+    border-radius: 10px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 13px;
+    background: var(--white);
+    color: var(--text-dark);
+    outline: none;
+    cursor: pointer;
+    transition: border-color 0.2s;
+  }
+
+  .filter-select:focus { border-color: var(--hot); }
+
+  .btn-export {
+    padding: 8px 16px;
+    background: var(--white);
+    border: 1.5px solid rgba(27,94,32,0.2);
+    border-radius: 10px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--deep);
+    cursor: pointer;
+    transition: all 0.15s;
+    white-space: nowrap;
+  }
+
+  .btn-export:hover { background: var(--light); border-color: var(--hot); }
+
+  .btn-print {
+    padding: 8px 16px;
+    background: var(--deep);
+    border: none;
+    border-radius: 10px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 13px;
+    font-weight: 600;
+    color: white;
+    cursor: pointer;
+    transition: all 0.15s;
+    white-space: nowrap;
+  }
+
+  .btn-print:hover { background: var(--hot); }
+
+  .review-list {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+  }
+
+  .review-item {
+    background: var(--white);
+    border-radius: 18px;
+    padding: 18px 20px;
+    box-shadow: var(--shadow);
+    border: 1.5px solid rgba(27,94,32,0.07);
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    transition: transform 0.2s, box-shadow 0.2s;
+    animation: slideIn 0.35s ease;
+  }
+
+  @keyframes slideIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .review-item:hover { transform: translateY(-1px); box-shadow: var(--shadow-hover); }
+
+  .item-badge {
+    flex-shrink: 0;
+    padding: 5px 11px;
+    border-radius: 10px;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    white-space: nowrap;
+  }
+
+  .item-badge.normal { background: var(--light); color: var(--deep); }
+  .item-badge.plus { background: var(--gold-light); color: #92400e; }
+
+  .app-pill {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 6px;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+    margin-left: 6px;
+    vertical-align: middle;
+  }
+
+  .app-pill.upcart { background: #e8f5e9; color: #1b5e20; }
+  .app-pill.aftersell { background: #e3f2fd; color: #0d47a1; }
+
+  .item-info { flex: 1; min-width: 0; }
+
+  .item-partner {
+    font-weight: 600;
+    font-size: 15px;
+    color: var(--text-dark);
+    margin-bottom: 4px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .item-link {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 12px;
+    color: var(--text-light);
+    text-decoration: none;
+    transition: color 0.15s;
+    overflow: hidden;
+  }
+
+  .item-link:hover { color: var(--hot); }
+  .item-link svg { flex-shrink: 0; }
+
+  .link-text {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    max-width: 300px;
+  }
+
+  .item-date {
+    font-size: 11px;
+    color: var(--text-light);
+    margin-top: 3px;
+  }
+
+  .item-amount {
+    flex-shrink: 0;
+    font-family: 'Playfair Display', serif;
+    font-size: 1.4rem;
+    font-weight: 700;
+    color: var(--deep);
+  }
+
+  .item-amount.plus { color: #b45309; }
+
+  .item-actions { display: flex; gap: 6px; flex-shrink: 0; }
+
+  .btn-icon {
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: var(--text-light);
+    padding: 6px;
+    border-radius: 8px;
+    transition: all 0.15s;
+    line-height: 0;
+  }
+
+  .btn-icon:hover { background: var(--light); color: var(--hot); }
+  .btn-icon.delete:hover { background: var(--danger-light); color: var(--danger); }
+
+  .empty-state {
+    text-align: center;
+    padding: 60px 20px;
+    color: var(--text-light);
+  }
+
+  .empty-icon {
+    font-size: 3rem;
+    margin-bottom: 16px;
+    display: block;
+  }
+
+  .empty-state p { font-size: 15px; }
+
+  .toast {
+    position: fixed;
+    bottom: 32px;
+    left: 50%;
+    transform: translateX(-50%) translateY(20px);
+    background: var(--text-dark);
+    color: white;
+    padding: 12px 24px;
+    border-radius: 50px;
+    font-size: 14px;
+    font-weight: 500;
+    opacity: 0;
+    transition: all 0.3s;
+    pointer-events: none;
+    z-index: 100;
+    white-space: nowrap;
+  }
+
+  .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+  /* Confirm dialog */
+  .confirm-overlay {
+    position: fixed; inset: 0;
+    background: rgba(0,0,0,0.4);
+    z-index: 200;
+    display: flex; align-items: center; justify-content: center;
+    opacity: 0; pointer-events: none; transition: opacity 0.2s;
+  }
+
+  .confirm-overlay.show { opacity: 1; pointer-events: all; }
+
+  .confirm-box {
+    background: var(--white);
+    border-radius: 20px;
+    padding: 28px 32px;
+    max-width: 360px;
+    width: 90%;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.25);
+    text-align: center;
+    transform: scale(0.95);
+    transition: transform 0.2s;
+  }
+
+  .confirm-overlay.show .confirm-box { transform: scale(1); }
+
+  .confirm-box h3 {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.2rem;
+    margin-bottom: 10px;
+  }
+
+  .confirm-box p {
+    color: var(--text-mid);
+    font-size: 14px;
+    margin-bottom: 24px;
+    line-height: 1.5;
+  }
+
+  .confirm-actions { display: flex; gap: 10px; }
+
+  .btn-cancel {
+    flex: 1;
+    padding: 11px;
+    background: var(--pale);
+    border: 1.5px solid rgba(27,94,32,0.15);
+    border-radius: 12px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text-mid);
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+
+  .btn-cancel:hover { background: var(--light); }
+
+  .btn-confirm-delete {
+    flex: 1;
+    padding: 11px;
+    background: var(--danger);
+    border: none;
+    border-radius: 12px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 14px;
+    font-weight: 600;
+    color: white;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+
+  .btn-confirm-delete:hover { background: #dc2626; }
+
+  /* Edit modal */
+  .edit-overlay {
+    position: fixed; inset: 0;
+    background: rgba(0,0,0,0.4);
+    z-index: 200;
+    display: flex; align-items: center; justify-content: center;
+    opacity: 0; pointer-events: none; transition: opacity 0.2s;
+  }
+
+  .edit-overlay.show { opacity: 1; pointer-events: all; }
+
+  .edit-box {
+    background: var(--white);
+    border-radius: 24px;
+    padding: 32px;
+    max-width: 480px;
+    width: 95%;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.25);
+    transform: scale(0.95);
+    transition: transform 0.2s;
+  }
+
+  .edit-overlay.show .edit-box { transform: scale(1); }
+
+  .edit-box h3 {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.3rem;
+    margin-bottom: 22px;
+  }
+
+  .edit-form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 7px;
+    margin-bottom: 16px;
+  }
+
+  .edit-actions { display: flex; gap: 10px; margin-top: 8px; }
+
+  .btn-save-edit {
+    flex: 1;
+    padding: 12px;
+    background: linear-gradient(135deg, var(--hot) 0%, var(--deep) 100%);
+    color: white;
+    border: none;
+    border-radius: 12px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+
+  .btn-save-edit:hover { opacity: 0.9; }
+
+  /* Month filter tabs */
+  .month-tabs {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-bottom: 20px;
+  }
+
+  .month-tab {
+    padding: 6px 14px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 600;
+    border: 1.5px solid rgba(27,94,32,0.15);
+    background: var(--white);
+    color: var(--text-mid);
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+
+  .month-tab:hover { border-color: var(--hot); color: var(--hot); }
+  .month-tab.active { background: var(--hot); border-color: var(--hot); color: white; }
+
+  /* Earnings breakdown */
+  .breakdown-card {
+    background: var(--white);
+    border-radius: 18px;
+    padding: 20px 24px;
+    box-shadow: var(--shadow);
+    border: 1.5px solid rgba(27,94,32,0.07);
+    margin-bottom: 28px;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+  }
+
+  .breakdown-section h4 {
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    color: var(--text-light);
+    margin-bottom: 12px;
+  }
+
+  .breakdown-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 13px;
+    padding: 5px 0;
+    border-bottom: 1px solid rgba(27,94,32,0.06);
+  }
+
+  .breakdown-row:last-child { border-bottom: none; }
+  .breakdown-label { color: var(--text-mid); }
+  .breakdown-val { font-weight: 600; color: var(--deep); }
+
+  /* Print styles */
+  @media print {
+    body { background: white; }
+    body::before, body::after { display: none; }
+    .add-card, .month-tabs, .list-controls, .item-actions, .btn-export, .btn-print, .toast, .confirm-overlay, .edit-overlay { display: none !important; }
+    .container { padding: 20px; }
+    .review-item { box-shadow: none; border: 1px solid #ddd; break-inside: avoid; animation: none; }
+    .review-item:hover { transform: none; }
+    .stat-card { box-shadow: none; border: 1px solid #ddd; }
+    .breakdown-card { box-shadow: none; border: 1px solid #ddd; }
+    header { margin-bottom: 24px; }
+    .stats-bar { margin-bottom: 20px; }
+    .print-date { display: block !important; }
+    .list-header { margin-bottom: 12px; }
+    a { color: inherit; text-decoration: none; }
+  }
+
+  .print-date {
+    display: none;
+    text-align: right;
+    font-size: 12px;
+    color: var(--text-light);
+    margin-bottom: 8px;
+  }
+
+  @media (max-width: 700px) {
+    .form-row { grid-template-columns: 1fr; }
+    .stats-bar { grid-template-columns: repeat(2, 1fr); }
+    .stats-bar .stat-card.total { grid-column: span 2; }
+    .breakdown-card { grid-template-columns: 1fr; }
+    .link-text { max-width: 140px; }
+    h1 { font-size: 2rem; }
+    .search-input { width: 140px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="container">
+  <div class="print-date" id="print-date"></div>
+
+  <header>
+    <div class="header-tag">Bounty Tracker</div>
+    <h1>Jose's <span>Bounties</span></h1>
+    <p class="subtitle">Partner reviews and earnings</p>
+  </header>
+
+  <div class="stats-bar">
+    <div class="stat-card">
+      <div class="stat-label">Total Reviews</div>
+      <div class="stat-value" id="stat-total">0</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Plus Reviews</div>
+      <div class="stat-value" id="stat-plus">0</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">UpCart</div>
+      <div class="stat-value" id="stat-upcart">0</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">AfterSell</div>
+      <div class="stat-value" id="stat-aftersell">0</div>
+    </div>
+    <div class="stat-card total">
+      <div class="stat-label">Total Earned</div>
+      <div class="stat-value" id="stat-earned">$0</div>
+    </div>
+  </div>
+
+  <div class="breakdown-card" id="breakdown-card">
+    <div class="breakdown-section">
+      <h4>By App</h4>
+      <div class="breakdown-row"><span class="breakdown-label">UpCart earnings</span><span class="breakdown-val" id="bd-upcart-earn">$0</span></div>
+      <div class="breakdown-row"><span class="breakdown-label">AfterSell earnings</span><span class="breakdown-val" id="bd-aftersell-earn">$0</span></div>
+    </div>
+    <div class="breakdown-section">
+      <h4>By Type</h4>
+      <div class="breakdown-row"><span class="breakdown-label">Normal reviews ($50 each)</span><span class="breakdown-val" id="bd-normal-earn">$0</span></div>
+      <div class="breakdown-row"><span class="breakdown-label">Plus reviews ($100 each)</span><span class="breakdown-val" id="bd-plus-earn">$0</span></div>
+    </div>
+  </div>
+
+  <div class="add-card">
+    <h2>Log a Review</h2>
+    <div class="form-row">
+      <div class="form-group">
+        <label>Partner Name</label>
+        <input type="text" id="partner-name" placeholder="e.g. Acme Corp" autocomplete="off" />
+      </div>
+      <div class="form-group">
+        <label>Review Type</label>
+        <div class="type-selector">
+          <div class="type-option">
+            <input type="radio" name="type" id="type-normal" value="normal" checked />
+            <label class="type-label" for="type-normal">
+              <span class="type-name"><span class="type-dot"></span>Normal</span>
+              <span class="type-price">$50</span>
+            </label>
+          </div>
+          <div class="type-option">
+            <input type="radio" name="type" id="type-plus" value="plus" />
+            <label class="type-label" for="type-plus">
+              <span class="type-name"><span class="type-dot"></span>Plus</span>
+              <span class="type-price">$100</span>
+            </label>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label>App</label>
+        <div class="type-selector">
+          <div class="type-option">
+            <input type="radio" name="app" id="app-upcart" value="upcart" checked />
+            <label class="type-label" for="app-upcart">
+              <span class="type-name"><span class="type-dot"></span>UpCart</span>
+            </label>
+          </div>
+          <div class="type-option">
+            <input type="radio" name="app" id="app-aftersell" value="aftersell" />
+            <label class="type-label" for="app-aftersell">
+              <span class="type-name"><span class="type-dot"></span>AfterSell</span>
+            </label>
+          </div>
+        </div>
+      </div>
+      <div class="form-group">
+        <label>GChat Link</label>
+        <input type="url" id="gchat-link" placeholder="https://chat.google.com/..." autocomplete="off" />
+      </div>
+    </div>
+    <button class="btn-add" onclick="addReview()">Add Review +</button>
+  </div>
+
+  <div class="list-header">
+    <div style="display:flex;align-items:center;gap:12px;">
+      <div class="list-title">Your Reviews</div>
+      <div class="count-badge" id="list-count">0 reviews</div>
+    </div>
+    <div class="list-controls">
+      <input type="text" class="search-input" id="search-input" placeholder="Search partner..." oninput="render()" />
+      <select class="filter-select" id="filter-app" onchange="render()">
+        <option value="all">All Apps</option>
+        <option value="upcart">UpCart</option>
+        <option value="aftersell">AfterSell</option>
+      </select>
+      <select class="filter-select" id="filter-type" onchange="render()">
+        <option value="all">All Types</option>
+        <option value="normal">Normal</option>
+        <option value="plus">Plus</option>
+      </select>
+      <select class="filter-select" id="filter-sort" onchange="render()">
+        <option value="newest">Newest first</option>
+        <option value="oldest">Oldest first</option>
+        <option value="amount-high">Amount: high</option>
+        <option value="amount-low">Amount: low</option>
+        <option value="name">Name A-Z</option>
+      </select>
+      <button class="btn-export" onclick="exportCSV()">Export CSV</button>
+      <button class="btn-print" onclick="printPDF()">Print / PDF</button>
+    </div>
+  </div>
+
+  <div class="month-tabs" id="month-tabs"></div>
+
+  <div class="review-list" id="review-list">
+    <div class="empty-state">
+      <span class="empty-icon">🌿</span>
+      <p>No reviews yet, Jose! Add your first one above.</p>
+    </div>
+  </div>
+</div>
+
+<!-- Confirm delete dialog -->
+<div class="confirm-overlay" id="confirm-overlay">
+  <div class="confirm-box">
+    <h3>Remove Review?</h3>
+    <p id="confirm-msg">This will permanently remove this entry. This cannot be undone.</p>
+    <div class="confirm-actions">
+      <button class="btn-cancel" onclick="closeConfirm()">Cancel</button>
+      <button class="btn-confirm-delete" id="confirm-delete-btn">Remove</button>
+    </div>
+  </div>
+</div>
+
+<!-- Edit modal -->
+<div class="edit-overlay" id="edit-overlay">
+  <div class="edit-box">
+    <h3>Edit Review</h3>
+    <div class="edit-form-group">
+      <label>Partner Name</label>
+      <input type="text" id="edit-name" autocomplete="off" />
+    </div>
+    <div class="edit-form-group">
+      <label>GChat Link</label>
+      <input type="url" id="edit-link" autocomplete="off" />
+    </div>
+    <div class="edit-form-group">
+      <label>Review Type</label>
+      <div class="type-selector">
+        <div class="type-option">
+          <input type="radio" name="edit-type" id="edit-type-normal" value="normal" />
+          <label class="type-label" for="edit-type-normal">
+            <span class="type-name"><span class="type-dot"></span>Normal</span>
+            <span class="type-price">$50</span>
+          </label>
+        </div>
+        <div class="type-option">
+          <input type="radio" name="edit-type" id="edit-type-plus" value="plus" />
+          <label class="type-label" for="edit-type-plus">
+            <span class="type-name"><span class="type-dot"></span>Plus</span>
+            <span class="type-price">$100</span>
+          </label>
+        </div>
+      </div>
+    </div>
+    <div class="edit-form-group">
+      <label>App</label>
+      <div class="type-selector">
+        <div class="type-option">
+          <input type="radio" name="edit-app" id="edit-app-upcart" value="upcart" />
+          <label class="type-label" for="edit-app-upcart">
+            <span class="type-name"><span class="type-dot"></span>UpCart</span>
+          </label>
+        </div>
+        <div class="type-option">
+          <input type="radio" name="edit-app" id="edit-app-aftersell" value="aftersell" />
+          <label class="type-label" for="edit-app-aftersell">
+            <span class="type-name"><span class="type-dot"></span>AfterSell</span>
+          </label>
+        </div>
+      </div>
+    </div>
+    <div class="edit-actions">
+      <button class="btn-cancel" onclick="closeEdit()">Cancel</button>
+      <button class="btn-save-edit" onclick="saveEdit()">Save Changes</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+  const KEY = 'review_bounties_jose_v2';
+  let pendingDeleteId = null;
+  let editingId = null;
+  let activeMonth = 'all';
+
+  const SEED = [
+    { id: 1750291200001, name: 'Moda Flash',              app: 'upcart',    type: 'normal', amount: 50, link: 'https://chat.google.com/room/AAQAsdhNgvE/BVOOt5hIcXY/BVO0t5hIcXY?cls=10', date: '2026-06-19T08:00:00.000Z' },
+    { id: 1750032000002, name: 'CALIBER',                 app: 'aftersell', type: 'normal', amount: 50, link: 'https://chat.google.com/room/AAQAsdhNgvE/-8XQg',                          date: '2026-06-16T08:00:00.000Z' },
+    { id: 1749945600003, name: 'baharat.co.uk',           app: 'upcart',    type: 'normal', amount: 50, link: 'https://chat.google.com/room/AAQAsdhNgvE/NZKan',                          date: '2026-06-15T08:00:00.000Z' },
+    { id: 1749945600004, name: 'Amélie Noir',             app: 'upcart',    type: 'normal', amount: 50, link: 'https://chat.google.com/room/AAQAsdhNgvE/o2Dbc',                          date: '2026-06-15T08:00:00.000Z' },
+    { id: 1749859200005, name: 'Atelier-Celene',          app: 'upcart',    type: 'normal', amount: 50, link: 'https://chat.google.com/room/AAQAsdhNgvE/35Hu9',                          date: '2026-06-14T08:00:00.000Z' },
+    { id: 1749859200006, name: 'Mia Zurich',              app: 'aftersell', type: 'normal', amount: 50, link: 'https://chat.google.com/room/AAQAsdhNgvE/aV8Q3',                          date: '2026-06-14T08:00:00.000Z' },
+    { id: 1749859200007, name: 'Weatherbeard Supply Co.', app: 'upcart',    type: 'normal', amount: 50, link: 'https://chat.google.com/room/AAQAsdhNgvE/t85F4r',                         date: '2026-06-14T08:00:00.000Z' },
+  ];
+
+  function load() {
+    try {
+      const r = localStorage.getItem(KEY);
+      if (r) return JSON.parse(r);
+      save(SEED);
+      return SEED;
+    }
+    catch { return SEED; }
+  }
+
+  function save(data) { localStorage.setItem(KEY, JSON.stringify(data)); }
+
+  function fmtDate(iso) {
+    return new Date(iso).toLocaleDateString('en-CA', { month: 'short', day: 'numeric', year: 'numeric' });
+  }
+
+  function monthKey(iso) {
+    const d = new Date(iso);
+    return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;
+  }
+
+  function monthLabel(key) {
+    const [y, m] = key.split('-');
+    return new Date(+y, +m-1, 1).toLocaleDateString('en-CA', { month: 'long', year: 'numeric' });
+  }
+
+  function showToast(msg) {
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.classList.add('show');
+    setTimeout(() => t.classList.remove('show'), 2800);
+  }
+
+  function esc(s) {
+    return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  }
+
+  function addReview() {
+    const name = document.getElementById('partner-name').value.trim();
+    const link = document.getElementById('gchat-link').value.trim();
+    const type = document.querySelector('input[name="type"]:checked').value;
+    const app = document.querySelector('input[name="app"]:checked').value;
+
+    if (!name) { showToast('Please enter a partner name'); return; }
+    if (!link) { showToast('Please paste the GChat link'); return; }
+    if (!link.startsWith('http')) { showToast('Link does not look valid'); return; }
+
+    const reviews = load();
+    reviews.unshift({ id: Date.now(), name, link, type, app, amount: type === 'plus' ? 100 : 50, date: new Date().toISOString() });
+    save(reviews);
+
+    document.getElementById('partner-name').value = '';
+    document.getElementById('gchat-link').value = '';
+    document.getElementById('type-normal').checked = true;
+    document.getElementById('app-upcart').checked = true;
+
+    render();
+    showToast(`${name} logged — $${type === 'plus' ? '100' : '50'} added!`);
+  }
+
+  function askDelete(id, name) {
+    pendingDeleteId = id;
+    document.getElementById('confirm-msg').textContent = `Remove "${name}"? This cannot be undone.`;
+    document.getElementById('confirm-overlay').classList.add('show');
+    document.getElementById('confirm-delete-btn').onclick = confirmDelete;
+  }
+
+  function confirmDelete() {
+    if (!pendingDeleteId) return;
+    const reviews = load().filter(r => r.id !== pendingDeleteId);
+    save(reviews);
+    pendingDeleteId = null;
+    closeConfirm();
+    render();
+    showToast('Review removed');
+  }
+
+  function closeConfirm() {
+    document.getElementById('confirm-overlay').classList.remove('show');
+    pendingDeleteId = null;
+  }
+
+  function openEdit(id) {
+    const r = load().find(r => r.id === id);
+    if (!r) return;
+    editingId = id;
+    document.getElementById('edit-name').value = r.name;
+    document.getElementById('edit-link').value = r.link;
+    document.getElementById(r.type === 'plus' ? 'edit-type-plus' : 'edit-type-normal').checked = true;
+    document.getElementById(r.app === 'aftersell' ? 'edit-app-aftersell' : 'edit-app-upcart').checked = true;
+    document.getElementById('edit-overlay').classList.add('show');
+  }
+
+  function saveEdit() {
+    const name = document.getElementById('edit-name').value.trim();
+    const link = document.getElementById('edit-link').value.trim();
+    const type = document.querySelector('input[name="edit-type"]:checked').value;
+    const app = document.querySelector('input[name="edit-app"]:checked').value;
+
+    if (!name) { showToast('Please enter a partner name'); return; }
+    if (!link) { showToast('Please paste a GChat link'); return; }
+
+    const reviews = load().map(r => r.id === editingId
+      ? { ...r, name, link, type, app, amount: type === 'plus' ? 100 : 50 }
+      : r
+    );
+    save(reviews);
+    closeEdit();
+    render();
+    showToast('Review updated');
+  }
+
+  function closeEdit() {
+    document.getElementById('edit-overlay').classList.remove('show');
+    editingId = null;
+  }
+
+  function exportCSV() {
+    const reviews = load();
+    if (!reviews.length) { showToast('Nothing to export'); return; }
+    const rows = [['Date','Partner','App','Type','Amount','GChat Link']];
+    reviews.forEach(r => rows.push([fmtDate(r.date), r.name, r.app, r.type, r.amount, r.link]));
+    const csv = rows.map(r => r.map(c => `"${String(c).replace(/"/g,'""')}"`).join(',')).join('\n');
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(new Blob([csv], { type: 'text/csv' }));
+    a.download = `jose-bounties-${new Date().toISOString().slice(0,10)}.csv`;
+    a.click();
+    showToast('CSV downloaded!');
+  }
+
+  function printPDF() {
+    document.getElementById('print-date').textContent = `Printed ${new Date().toLocaleDateString('en-CA', { month: 'long', day: 'numeric', year: 'numeric' })}`;
+    window.print();
+  }
+
+  function render() {
+    let reviews = load();
+    const search = document.getElementById('search-input').value.trim().toLowerCase();
+    const filterApp = document.getElementById('filter-app').value;
+    const filterType = document.getElementById('filter-type').value;
+    const sort = document.getElementById('filter-sort').value;
+
+    const allMonths = [...new Set(reviews.map(r => monthKey(r.date)))].sort().reverse();
+    renderMonthTabs(allMonths);
+
+    if (activeMonth !== 'all') reviews = reviews.filter(r => monthKey(r.date) === activeMonth);
+    if (search) reviews = reviews.filter(r => r.name.toLowerCase().includes(search));
+    if (filterApp !== 'all') reviews = reviews.filter(r => r.app === filterApp);
+    if (filterType !== 'all') reviews = reviews.filter(r => r.type === filterType);
+
+    if (sort === 'oldest') reviews = [...reviews].sort((a,b) => a.date.localeCompare(b.date));
+    else if (sort === 'amount-high') reviews = [...reviews].sort((a,b) => b.amount - a.amount);
+    else if (sort === 'amount-low') reviews = [...reviews].sort((a,b) => a.amount - b.amount);
+    else if (sort === 'name') reviews = [...reviews].sort((a,b) => a.name.localeCompare(b.name));
+
+    const all = load();
+    const total = all.reduce((s,r) => s + r.amount, 0);
+    const plusCount = all.filter(r => r.type === 'plus').length;
+    const upcartCount = all.filter(r => r.app === 'upcart').length;
+    const aftersellCount = all.filter(r => r.app === 'aftersell').length;
+    const upcartEarn = all.filter(r => r.app === 'upcart').reduce((s,r) => s + r.amount, 0);
+    const aftersellEarn = all.filter(r => r.app === 'aftersell').reduce((s,r) => s + r.amount, 0);
+    const normalEarn = all.filter(r => r.type === 'normal').reduce((s,r) => s + r.amount, 0);
+    const plusEarn = all.filter(r => r.type === 'plus').reduce((s,r) => s + r.amount, 0);
+
+    document.getElementById('stat-total').textContent = all.length;
+    document.getElementById('stat-plus').textContent = plusCount;
+    document.getElementById('stat-upcart').textContent = upcartCount;
+    document.getElementById('stat-aftersell').textContent = aftersellCount;
+    document.getElementById('stat-earned').textContent = `$${total.toLocaleString()}`;
+    document.getElementById('list-count').textContent = `${reviews.length} review${reviews.length !== 1 ? 's' : ''}`;
+    document.getElementById('bd-upcart-earn').textContent = `$${upcartEarn.toLocaleString()}`;
+    document.getElementById('bd-aftersell-earn').textContent = `$${aftersellEarn.toLocaleString()}`;
+    document.getElementById('bd-normal-earn').textContent = `$${normalEarn.toLocaleString()}`;
+    document.getElementById('bd-plus-earn').textContent = `$${plusEarn.toLocaleString()}`;
+
+    const list = document.getElementById('review-list');
+
+    if (reviews.length === 0) {
+      list.innerHTML = `<div class="empty-state"><span class="empty-icon">🌿</span><p>${search || filterApp !== 'all' || filterType !== 'all' || activeMonth !== 'all' ? 'No reviews match your filters.' : 'No reviews yet, Jose! Add your first one above.'}</p></div>`;
+      return;
+    }
+
+    list.innerHTML = reviews.map(r => `
+      <div class="review-item">
+        <span class="item-badge ${r.type}">${r.type === 'plus' ? 'Plus' : 'Normal'}</span>
+        <div class="item-info">
+          <div class="item-partner">
+            ${esc(r.name)}
+            <span class="app-pill ${r.app}">${r.app === 'upcart' ? 'UpCart' : 'AfterSell'}</span>
+          </div>
+          <a class="item-link" href="${esc(r.link)}" target="_blank" rel="noopener">
+            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+            <span class="link-text">${esc(r.link)}</span>
+          </a>
+          <div class="item-date">${fmtDate(r.date)}</div>
+        </div>
+        <div class="item-amount ${r.type}">$${r.amount}</div>
+        <div class="item-actions">
+          <button class="btn-icon" onclick="openEdit(${r.id})" title="Edit" aria-label="Edit review">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+          </button>
+          <button class="btn-icon delete" onclick="askDelete(${r.id}, '${esc(r.name)}')" title="Remove" aria-label="Remove review">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4a1 1 0 011-1h4a1 1 0 011 1v2"/></svg>
+          </button>
+        </div>
+      </div>
+    `).join('');
+  }
+
+  function renderMonthTabs(months) {
+    const container = document.getElementById('month-tabs');
+    if (months.length === 0) { container.innerHTML = ''; return; }
+    const tabs = [{ key: 'all', label: 'All Time' }, ...months.map(m => ({ key: m, label: monthLabel(m) }))];
+    container.innerHTML = tabs.map(t =>
+      `<button class="month-tab${activeMonth === t.key ? ' active' : ''}" onclick="setMonth('${t.key}')">${t.label}</button>`
+    ).join('');
+  }
+
+  function setMonth(key) {
+    activeMonth = key;
+    render();
+  }
+
+  document.getElementById('confirm-overlay').addEventListener('click', e => {
+    if (e.target === document.getElementById('confirm-overlay')) closeConfirm();
+  });
+
+  document.getElementById('edit-overlay').addEventListener('click', e => {
+    if (e.target === document.getElementById('edit-overlay')) closeEdit();
+  });
+
+  document.getElementById('partner-name').addEventListener('keydown', e => {
+    if (e.key === 'Enter') document.getElementById('gchat-link').focus();
+  });
+
+  document.getElementById('gchat-link').addEventListener('keydown', e => {
+    if (e.key === 'Enter') addReview();
+  });
+
+  render();
+</script>
+</body>
+</html>
