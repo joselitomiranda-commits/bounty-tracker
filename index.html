@@ -386,6 +386,23 @@
 
   .btn-print:hover { background: var(--hot); }
 
+  .btn-sync {
+    padding: 8px 16px;
+    background: #1a73e8;
+    border: none;
+    border-radius: 10px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 13px;
+    font-weight: 600;
+    color: white;
+    cursor: pointer;
+    transition: all 0.15s;
+    white-space: nowrap;
+  }
+
+  .btn-sync:hover { background: #1557b0; }
+  .btn-sync:disabled { background: #aaa; cursor: not-allowed; }
+
   .review-list {
     display: flex;
     flex-direction: column;
@@ -886,6 +903,7 @@
         <option value="name">Name A-Z</option>
       </select>
       <button class="btn-export" onclick="exportCSV()">Export CSV</button>
+      <button class="btn-sync" onclick="syncToSheets()" id="btn-sync">Sync to Sheets</button>
       <button class="btn-print" onclick="printPDF()">Print / PDF</button>
     </div>
   </div>
@@ -1137,6 +1155,39 @@
   function printPDF() {
     document.getElementById('print-date').textContent = `Printed ${new Date().toLocaleDateString('en-CA', { month: 'long', day: 'numeric', year: 'numeric' })}`;
     window.print();
+  }
+
+  function syncToSheets() {
+    const reviews = load();
+    if (!reviews.length) { showToast('Nothing to sync'); return; }
+    const btn = document.getElementById('btn-sync');
+    btn.disabled = true;
+    btn.textContent = 'Syncing...';
+    let sent = 0;
+    const delay = (ms) => new Promise(res => setTimeout(res, ms));
+    (async () => {
+      for (const entry of [...reviews].reverse()) {
+        fetch(SHEET_URL, {
+          method: 'POST',
+          mode: 'no-cors',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            date: new Date(entry.date).toLocaleDateString('en-CA', { month: 'short', day: 'numeric', year: 'numeric' }),
+            name: entry.name,
+            app: entry.app,
+            type: entry.type,
+            amount: entry.amount,
+            link: entry.link
+          })
+        }).catch(() => {});
+        sent++;
+        btn.textContent = `Syncing ${sent}/${reviews.length}...`;
+        await delay(400);
+      }
+      btn.textContent = 'Synced!';
+      setTimeout(() => { btn.disabled = false; btn.textContent = 'Sync to Sheets'; }, 3000);
+      showToast(`${reviews.length} entries synced to Google Sheets!`);
+    })();
   }
 
   function render() {
