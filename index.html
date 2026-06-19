@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -970,9 +971,26 @@
 
 <script>
   const KEY = 'review_bounties_jose_v2';
+  const SHEET_URL = 'https://script.google.com/a/macros/rokt.com/s/AKfycbyi4FpS8mY_UgOq71tVU9-HOOwOSIvPQ3OaHX1vABJuJxt30H9xo8OThe-txZRFQOe2Yg/exec';
   let pendingDeleteId = null;
   let editingId = null;
   let activeMonth = 'all';
+
+  function postToSheet(entry) {
+    fetch(SHEET_URL, {
+      method: 'POST',
+      mode: 'no-cors',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        date: new Date(entry.date).toLocaleDateString('en-CA', { month: 'short', day: 'numeric', year: 'numeric' }),
+        name: entry.name,
+        app: entry.app,
+        type: entry.type,
+        amount: entry.amount,
+        link: entry.link
+      })
+    }).catch(() => {});
+  }
 
   const SEED = [
     { id: 1750291200001, name: 'Moda Flash',              app: 'upcart',    type: 'normal', amount: 50, link: 'https://chat.google.com/room/AAQAsdhNgvE/BVOOt5hIcXY/BVO0t5hIcXY?cls=10', date: '2026-06-19T08:00:00.000Z' },
@@ -1031,9 +1049,11 @@
     if (!link) { showToast('Please paste the GChat link'); return; }
     if (!link.startsWith('http')) { showToast('Link does not look valid'); return; }
 
+    const entry = { id: Date.now(), name, link, type, app, amount: type === 'plus' ? 100 : 50, date: new Date().toISOString() };
     const reviews = load();
-    reviews.unshift({ id: Date.now(), name, link, type, app, amount: type === 'plus' ? 100 : 50, date: new Date().toISOString() });
+    reviews.unshift(entry);
     save(reviews);
+    postToSheet(entry);
 
     document.getElementById('partner-name').value = '';
     document.getElementById('gchat-link').value = '';
